@@ -800,6 +800,16 @@ static void __skb_dump_info(const char *prefix, const struct sk_buff *skb,
 static int
 linux_if_tx(struct vr_interface *vif, struct vr_packet *pkt)
 {
+    if (vr_pkt_type_is_overlay(pkt->vp_type)) {
+       struct vrouter *router = vrouter_get(0);
+       struct vr_interface *ipsec_vif;
+       ipsec_vif = vif_find(router, "ipsec0");
+       if (ipsec_vif) {
+           vif = ipsec_vif;
+           vr_printf("Changed Outgoing interface for overlay pkt %s\n", vif->vif_name);
+       }
+    }
+
     struct net_device *dev = (struct net_device *)vif->vif_os;
     struct sk_buff *skb = vp_os_packet(pkt);
     struct skb_shared_info *sinfo;
